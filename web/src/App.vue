@@ -1,44 +1,27 @@
 <template>
-  <div>
-    <div>Bot name:{{ bot_name }} </div>
-    <div>Bot strength: {{ bot_strength }}</div>
-
-  </div>
+  <NavBar></NavBar>
   <router-view></router-view>
 </template>
 
 <script>
-import $ from 'jquery';
-import { ref } from 'vue'; //引入变量
+//import $ from 'jquery';
+//import { ref } from 'vue'; //引入变量
+
+import "bootstrap/dist/js/bootstrap"; //导入bootstrap依赖 （js)
+import "bootstrap/dist/css/bootstrap.min.css"; //导入bootstrap依赖 (css)
+import NavBar from './components/NavBar.vue';//来自BootStrap官网的导航栏样本
+
 
 export default{
-  name: "App",
-  //函数主入口
-  setup: () => {
-    let bot_name = ref("");
-    let bot_strength = ref("");
-
-    //访问后端获取变量值
-    $.ajax({
-      url: "http://127.0.0.1:3000/battle/getbotinfo/", //该url为后端函数的返回值地址
-      type: "get",
-      success: resp =>{
-        bot_name.value = resp.name;
-        bot_strength.value = resp.strength;
-      } 
-    });
-    //返回给前端的值
-    return {
-      bot_name,
-      bot_strength
-    }
+  components: {
+    NavBar
   }
 }
 </script>
 
 <style>
   body{
-    background-image: url("@/assets/background.jpg");
+    background-image: url("@/assets/images/background.jpg");
     background-size: cover;
   }
 </style>

@@ -18,7 +18,6 @@ public class BotInfoController {
         Map<String, String> test_bot = new HashMap<>();
         test_bot.put("name", "wolf");
         test_bot.put("strength", "1997");
-
         return test_bot;
     }
 
