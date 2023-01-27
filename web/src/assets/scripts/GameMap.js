@@ -1,4 +1,5 @@
 import { BotGameObject } from "./BotGameObject";
+import { SimpleBot } from "./SimpleBot";
 import { Wall } from "./Walls";
 //地图
 export class GameMap extends BotGameObject {
@@ -9,11 +10,18 @@ export class GameMap extends BotGameObject {
         this.parent = parent;
         this.L = 0; //每一块砖的绝对距离
         //方块格的长宽边个数
-        this.rows = 13;//列
-        this.cols = 13;//行
+        this.rows = 14;//列
+        this.cols = 15;//行
 
         this.blocks = [];//墙壁，边界
         this.blocks_count = 10;//内部障碍物的数量
+
+        //两个对战的bot
+        this.bots = [
+            new SimpleBot({id: 0, color: "#4876EC", r: this.rows - 2, c: 1}, this),
+            new SimpleBot({id: 1, color: "#F94848", r: 1, c: this.cols - 2}, this),
+        ]
+
     }
 
     //图的连通性判断
@@ -66,10 +74,10 @@ export class GameMap extends BotGameObject {
                 let r = parseInt(Math.random() * this.rows);
                 let c = parseInt(Math.random() * this.cols);
                 //以右倾对角线为轴，生成对称的地图布局，如果block[][] == true,证明已经生成过block或者wall
-                if (block[r][c] || block[c][r]) continue;
+                if (block[r][c] || block[this.rows - 1 - r][this.cols - 1 - c]) continue;
                 if (r === this.rows -2 || c === this.cols -2) continue; //不在左下角和右上角出生点生成block
                 
-                block[r][c] = block[c][r] = true;
+                block[r][c] = block[this.rows - 1 - r][this.cols - 1 - c] = true;
                 break;//成功找到，break子循环
             }
         }
@@ -90,6 +98,30 @@ export class GameMap extends BotGameObject {
         return true;
     }
 
+    //绑定键盘操作方向
+    add_listening_events() {
+        this.ctx.canvas.focus();
+        const [bot0, bot1] = this.bots;
+        this.ctx.canvas.addEventListener("keydown", e => {
+            if (e.key === 'w')
+                bot0.set_direction(0);
+            else if (e.key === 'd')
+                bot0.set_direction(1);
+            else if (e.key === 's')
+                bot0.set_direction(2);
+            else if (e.key === 'a')
+                bot0.set_direction(3);
+            else if (e.key === 'ArrowUp')
+                bot1.set_direction(0);
+            else if (e.key === 'ArrowRight')
+                bot1.set_direction(1);
+            else if (e.key === 'ArrowDown')
+                bot1.set_direction(2);
+            else if (e.key === 'ArrowLeft')
+                bot1.set_direction(3);
+        });
+    }
+
     start() {
         for (let i = 0; i < 2023; i++)
         {
@@ -97,6 +129,7 @@ export class GameMap extends BotGameObject {
             if (this.create_walls())
                 break;
         }
+            this.add_listening_events();
     }
 
     update_size() {
@@ -105,8 +138,59 @@ export class GameMap extends BotGameObject {
         this.ctx.canvas.height = this.L * this.rows;
     }
 
+    //判断移动是否可以执行（目的地不能是边界walls和障碍物blocks,另一个bot的cell）
+    check_valid(cell) {
+        for (const block of this.blocks )
+        {
+            if (block.r === cell.r && block.c === cell.c)
+                return false;
+        }
+
+        for (const bot of this.bots)
+        {
+            let len = bot.cells.length;
+            //如果bot的尾部不变长，则无需判断，直接valid
+            if (!bot.check_tail_increasing())
+            {
+                len --;
+            }
+            for (let i = 0; i < len; i++)
+            {
+                if (bot.cells[i].r === cell.r && bot.cells[i].c === cell.c)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+    
+    //判断当前回合是否执行完毕，并且下回合的操作已经就绪，如ready，才可以移动
+    check_ready() {
+        for (const bot of this.bots) 
+        {
+            if (bot.status !== "idle") return false; 
+            if (bot.direction === -1) return false;
+        }
+        return true;
+    }
+
+    //两个bot均执行next_step操作
+    next_step() {
+        //分别执行下一回合的操作
+        for (const bot of this.bots)
+        {
+            bot.next_step();
+        }
+    }
+
     update() {
         this.update_size();
+        if (this.check_ready() === true)
+        {
+            this.next_step();
+        }
         this.render();
     }
 

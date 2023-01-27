@@ -16,10 +16,10 @@ export default {
 
 <style scoped>
 div.playground {
-    width: 60vw;
-    height: 70vh;
+    width: 80vw;
+    height: 85vh;
     background: rgba(211,211,211,0.8);
-    margin-top: 5%;
-    margin-left: 20%;
+    margin-top: 1%;
+    margin-left: 10%;
 }
 </style>
