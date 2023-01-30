@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bbs.backend.mapper.UserMapper;
 import com.bbs.backend.pojo.User;
 import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-//import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,6 +34,20 @@ public class UserController {
         queryWrapper.eq("id", userId);//找到id为userId的id. eq：等于， gt：大于，ge：大于等于，同理 lt/le
 
         return userMapper.selectOne(queryWrapper);
+    }
+
+    //插入
+    @GetMapping("user/add/{userId}/{username}/{password}/")
+    public String addUser(@PathVariable int userId,
+                          @PathVariable String username,
+                          @PathVariable String password) {
+        //Encode password, 直接在数据库中存encode后的password，因为spring-security验证时，按照encode的密文验证
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        String encodedPassword = passwordEncoder.encode(password);
+
+        User user = new User(userId, username, encodedPassword);
+        userMapper.insert(user);
+        return "Insert successfully!";
     }
 
     //删除
