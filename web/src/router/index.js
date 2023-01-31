@@ -4,12 +4,24 @@ import RecordIndexView from '../views/record/RecordIndexView'
 import RanklistIndexView from '../views/ranklist/RanklistIndexView'
 import UserBotIndexView from '../views/user/bot/UserBotIndexView'
 import NotFoundView from '../views/error/NotFoundView'
+import UserLoginView from '../views/user/account/UserLoginView'
+import UserRegisterView from '../views/user/account/UserRegisterView'
 
 const routes = [
   {
     path: "/", //如果进入的网址根目录
     name: "home",
     redirect: "/battle/", //重定向到用户的对战页面
+  },
+  {
+    path: "/user/account/login",
+    name: "user_account_login",
+    component: UserLoginView,
+  },
+  {
+    path: "/user/account/register",
+    name: "user_account_register",
+    component: UserRegisterView,
   },
   {
     path: "/battle/",//网页中的url
