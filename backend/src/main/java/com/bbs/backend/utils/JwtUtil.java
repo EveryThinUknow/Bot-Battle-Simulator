@@ -28,7 +28,7 @@ public class JwtUtil {
     }
 
     private static JwtBuilder getJwtBuilder(String subject, Long ttlMillis, String uuid) {
-        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256; //HS256，哈希算法
         SecretKey secretKey = generalKey();
         long nowMillis = System.currentTimeMillis();
         Date now = new Date(nowMillis);

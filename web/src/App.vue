@@ -21,8 +21,36 @@ export default{
       url: "http://127.0.0.1:3000/user/account/token/",
       type: "post",
       data: {
-        username: 'why',
-        password: 'why',
+        username: 'zys',
+        password: 'zys',
+      },
+      success(resp) {
+        console.log(resp);
+      },
+      error(resp) {
+        console.log(resp);
+      }
+    })
+    $.ajax({
+      url: "http://127.0.0.1:3000/user/account/info/",
+      type: "get",
+      headers: {
+        Authorization: "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI5ZmRjODFkOTRiM2Q0N2UyOWRiMzVkNjNiNDRiZGIxOSIsInN1YiI6IjUiLCJpc3MiOiJzZyIsImlhdCI6MTY3NTE3MzQxNywiZXhwIjoxNjc1Nzc4MjE3fQ._WUmEpP13GWc367WFjrkOE5jx12LKblqx0Y_2Px4xtg",
+      },
+      success(resp) {
+        console.log(resp);
+      },
+      error(resp) {
+        console.log(resp);
+      }
+    })
+    $.ajax({
+      url: "http://127.0.0.1:3000/user/account/register/",
+      type: "post",
+      data: {
+        username: 'zys',
+        password: 'zys',
+        confirm_password: 'zys',
       },
       success(resp) {
         console.log(resp);
