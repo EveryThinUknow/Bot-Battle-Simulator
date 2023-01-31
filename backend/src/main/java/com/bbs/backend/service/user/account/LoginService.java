@@ -1,4 +1,7 @@
 package com.bbs.backend.service.user.account;
 
-public class LoginService {
+import java.util.Map;
+
+public interface LoginService {
+    public Map<String, String> getToken (String username, String password);
 }

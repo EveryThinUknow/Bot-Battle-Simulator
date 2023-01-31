@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+//调试用类，非项目实际运行使用
 @RestController
 public class UserController {
     @Autowired
@@ -45,7 +46,7 @@ public class UserController {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String encodedPassword = passwordEncoder.encode(password);
 
-        User user = new User(userId, username, encodedPassword);
+        User user = new User(userId, username, encodedPassword, "");
         userMapper.insert(user);
         return "Insert successfully!";
     }

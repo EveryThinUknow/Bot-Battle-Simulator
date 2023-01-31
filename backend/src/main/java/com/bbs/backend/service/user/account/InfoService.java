@@ -1,4 +1,7 @@
 package com.bbs.backend.service.user.account;
 
-public class InfoService {
+import java.util.Map;
+
+public interface InfoService {
+    public Map<String, String> getinfo();
 }
