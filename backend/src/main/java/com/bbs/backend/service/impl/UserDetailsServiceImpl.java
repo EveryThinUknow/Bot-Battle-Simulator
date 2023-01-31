@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 //spring security 逻辑实现
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
-    @Autowired //Autowired：读取数据库
+    @Autowired //读取数据库
     private UserMapper userMapper;
 
     @Override //Override重写,
