@@ -11,7 +11,7 @@
                         <label for="password" class="form-label">密码</label>
                         <input v-model="password" type="password" class="form-control" id="password" placeholder="Input your password">
                     </div>
-                    <div class="error-message">{{receive_message}}</div>
+                    <div class="error-message">{{ receive_message }}</div>
                     <button type="submit" class="btn btn-primary">登录</button>
                 </form>
             </div>
@@ -21,7 +21,7 @@
 
 <script>
 import CommonContent from '../../../components/CommonContent.vue'
-import {useStore} from 'vuex'
+import {useStore} from 'vuex'//全局变量
 import {ref} from 'vue' //获取变量的字符串
 import router from '../../../router/index'
 
@@ -37,11 +37,17 @@ export default{
 
         const login = () => {
             receive_message.value = "";
+            //存储全局变量数据
             store.dispatch("login", {
                 username: username.value,
                 password: password.value,
                 success() {
-                    router.push({name: 'home' });
+                    store.dispatch("getinfo", {
+                        success() {
+                            router.push({ name: 'home' });
+                            console.log(store.state.user);
+                        }
+                    })
                 },
                 error() {
                     receive_message.value = "用户名或密码错误"; //在页面显示错误

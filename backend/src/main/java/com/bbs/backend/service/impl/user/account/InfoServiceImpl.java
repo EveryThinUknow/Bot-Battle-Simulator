@@ -25,8 +25,8 @@ public class InfoServiceImpl implements InfoService {
         map.put("receive_message", "success");
         map.put("id", user.getId().toString());
         map.put("username", user.getUsername());
-        map.put("password", user.getPassword());
         map.put("photo", user.getPhoto());
+        map.put("is_login", "true");
 
         return map;
     }
