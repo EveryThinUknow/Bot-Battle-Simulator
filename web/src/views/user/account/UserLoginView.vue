@@ -1,5 +1,5 @@
 <template>
-    <CommonContent>
+    <CommonContent v-if="is_show">
         <div class = "row justify-content-md-center">
             <div class = "col-3">
                 <form @submit.prevent="login">
@@ -35,6 +35,29 @@ export default{
         let password = ref('');
         let receive_message = ref('');
 
+        //刷新会自动跳转登陆页面，如果是登录状态，不必展示登录页面的内容，因为会自动跳转到'home'
+        let is_show = ref(false);
+
+        //发现即使存储了cookies(token)，刷新依旧会退出登录状态，因此需要在每次跳转到登录界面时，判断是否存有cookies
+        const cookies = localStorage.getItem("cookies");
+        if(cookies)
+        {
+            store.commit("updateToken", cookies);
+            store.dispatch("getinfo", {
+                success() {
+                    router.push({name: "home"});
+                },
+                error(resp) {
+                    console.log(resp);
+                    is_show.value = true; //如果数据出错，展示登陆界面
+                }
+            });
+        }
+        else
+        {
+            is_show = true;//如果未登录(没有cookies,即token)，展示登陆界面
+        }
+
         const login = () => {
             receive_message.value = "";
             //存储全局变量数据
@@ -60,6 +83,7 @@ export default{
             password,
             receive_message,
             login,
+            is_show,
         }
     }
 }

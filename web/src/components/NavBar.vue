@@ -23,8 +23,8 @@
                 {{ $store.state.user.username }}
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item" href="/user/bot/">查看我的BOT</a></li>
-                    <li><a class="dropdown-item" href="#">退出账号</a></li>
+                    <router-link class="dropdown-item" :to="{name: 'user_bot_index'}" role="button">查看我的BOT</router-link>
+                    <li><a class="dropdown-item" href="#" @click="logout">退出账号</a></li>
                 </ul>
             </li>
         </ul>
@@ -49,16 +49,21 @@ route_name返回鼠标指针指向的<li>的name
 */
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
-
-//import { useStore } from 'vuex';
+import { useStore } from 'vuex';
 
 export default {
     setup() {
         const route = useRoute();
-        //const store = useStore();
         let route_name = computed(() => route.name)
+
+        const store = useStore();
+        const logout = () => {
+            store.dispatch("logout");
+        }
+
         return {
-            route_name
+            route_name,
+            logout
         }
     }
 }

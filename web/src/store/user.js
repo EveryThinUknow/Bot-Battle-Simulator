@@ -39,6 +39,8 @@ export default {
                 },
                 success(resp) {
                     if (resp.receive_message === "success") {
+                        //如果登录成功，将token存入浏览器的存储空间(localStorage)中
+                        localStorage.setItem("cookies", resp.token);
                         context.commit("updateToken", resp.token);
                         data.success(resp);
                     } else {
@@ -50,6 +52,13 @@ export default {
                 }
             });
         },
+
+        logout(context) {
+            //退出时，删除该cookies(token)
+            localStorage.removeItem("cookies", context.state.token);
+            context.commit("logout");
+        },
+        
         getinfo(context, data) {
             $.ajax({
                 url: "http://127.0.0.1:3000/user/account/info/",
