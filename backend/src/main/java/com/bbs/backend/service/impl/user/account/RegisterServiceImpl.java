@@ -26,12 +26,12 @@ public class RegisterServiceImpl implements RegisterService {
         Map<String, String> map = new HashMap<>();
         if (username == null)
         {
-            map.put("receive_message", "You should print the username!");
+            map.put("receive_message", "请输入用户名！");
             return map;
         }
         if (password == null || confirm_password == null)
         {
-            map.put("receive_message", "Please print the password twice!");
+            map.put("receive_message", "请输入密码！");
             return map;
         }
 
@@ -40,27 +40,27 @@ public class RegisterServiceImpl implements RegisterService {
 
         if (username.length() == 0)
         {
-            map.put("receive_message", "The username can't be null!");
+            map.put("receive_message", "用户名不能为空！");
             return map;
         }
         if (username.length() > 100)
         {
-            map.put("receive_message", "The size of username can't be more than 100 char!");
+            map.put("receive_message", "用户名的长度不能超过100字符！");
             return map;
         }
         if (password.length() == 0 || confirm_password.length() == 0)
         {
-            map.put("receive_message", "The password can't be null!");
+            map.put("receive_message", "密码不能为空！");
             return map;
         }
         if (password.length() > 100 || confirm_password.length() > 100)
         {
-            map.put("receive_message", "The size of password can't be more than 100 char!");
+            map.put("receive_message", "密码长度不能超过100字符！");
             return map;
         }
         if (!password.equals(confirm_password))
         {
-            map.put("receive_message", "The two entered passwords do not match!");
+            map.put("receive_message", "两次输入的密码不一致！");
             return map;
         }
 
@@ -70,7 +70,7 @@ public class RegisterServiceImpl implements RegisterService {
         List<User> users = userMapper.selectList(queryWrapper);//如果已经存在，则会select到，即users不为空
         if (!users.isEmpty())
         {
-            map.put("receive_message", "This username has been registered!");
+            map.put("receive_message", "该用户名已经被注册！");
             return map;
         }
 
