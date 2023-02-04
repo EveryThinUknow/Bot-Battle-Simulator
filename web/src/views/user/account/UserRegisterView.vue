@@ -45,6 +45,7 @@ export default{
                 url: "http://127.0.0.1:3000/user/account/register/",
                 type: "post",
                 data: {
+                    //:左边是自定义vue本地变量名，右边是数据库中对应的名称
                     username: username.value,
                     password: password.value,
                     confirm_password: confirm_password.value,

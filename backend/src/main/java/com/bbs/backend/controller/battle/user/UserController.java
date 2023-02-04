@@ -1,4 +1,4 @@
-package com.bbs.backend.controller.user;
+package com.bbs.backend.controller.battle.user;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bbs.backend.mapper.UserMapper;

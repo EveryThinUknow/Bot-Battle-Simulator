@@ -1,4 +1,4 @@
-package com.bbs.backend.controller.user.account;
+package com.bbs.backend.controller.battle.user.account;
 
 import com.bbs.backend.service.user.account.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;

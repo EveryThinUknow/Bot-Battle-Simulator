@@ -1,4 +1,4 @@
-package com.bbs.backend.controller.user.bot;
+package com.bbs.backend.controller.battle.user.bot;
 
 import com.bbs.backend.service.user.bot.UpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
