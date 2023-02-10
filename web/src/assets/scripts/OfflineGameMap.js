@@ -1,21 +1,19 @@
+/*
 import { BotGameObject } from "./BotGameObject";
 import { SimpleBot } from "./SimpleBot";
 import { Wall } from "./Walls";
 //地图
 export class GameMap extends BotGameObject {
-    constructor(ctx, parent, store) {
+    constructor(ctx, parent) {
         super();
-
-        //联机地图数据
-        this.store = store;
 
         this.ctx = ctx;
         this.parent = parent;
         this.L = 0; //每一块砖的绝对距离
-
-        //方块格的长宽边个数，边界，block等，前端测试用
+        //方块格的长宽边个数
         this.rows = 14;//列
         this.cols = 15;//行
+
         this.blocks = [];//墙壁，边界
         this.blocks_count = 10;//内部障碍物的数量
 
@@ -27,20 +25,78 @@ export class GameMap extends BotGameObject {
 
     }
 
+    //图的连通性判断
+    check_connect(block, start_x, start_y, end_x, end_y) {
+        //start既是起始坐标，也表示当前的位置
+        if (start_x === end_x && start_y === end_y)
+        {
+            return true;
+        }
+        block[start_x][start_y] = true;
+        let dx = [-1, 0, 1, 0], dy = [0, 1, 0, -1];
+        for (let i = 0; i < 4; i++)
+        {
+            let x = start_x + dx[i], y = start_y + dy[i];
+            //判断有没有撞墙,递归，继续判断
+            if(!block[x][y] && this.check_connect(block, x, y, end_x, end_y))
+                return true;
+        }
 
+        return false;
+    }
 
     //生成walls和blocks
     create_walls() {
-        const block = this.store.state.battle.gamemap;
+        const  block = [];
+        for (let r = 0; r < this.rows; r++)
+        {
+            block[r] = [];
+            for (let c = 0; c < this.cols; c++)
+            {
+                block[r][c] = false;
+            }
+        }
+        
+        //边界均为墙
+            //左右边界
+        for (let r = 0; r < this.rows; r++){
+            block[r][0] = block[r][this.cols - 1] = true;//每一行的第一列和最后一列为true，即该方格为边界墙
+        }
+            //上下边界
+        for (let c = 0; c < this.cols; c++){
+            block[0][c] = block[this.rows - 1][c] = true;//每一列的第一行和最后一行为true，即该方格为边界墙
+        }        
 
+        //生成地图（随机生成障碍物方块blocks）
+        for (let i = 0; i < this.blocks_count; i++)
+        {
+            for (let j = 0; j < 2023; j++)
+            {
+                let r = parseInt(Math.random() * this.rows);
+                let c = parseInt(Math.random() * this.cols);
+                //以右倾对角线为轴，生成对称的地图布局，如果block[][] == true,证明已经生成过block或者wall
+                if (block[r][c] || block[this.rows - 1 - r][this.cols - 1 - c]) continue;
+                if (r === this.rows -2 || c === this.cols -2) continue; //不在左下角和右上角出生点生成block
+                
+                block[r][c] = block[this.rows - 1 - r][this.cols - 1 - c] = true;
+                break;//成功找到，break子循环
+            }
+        }
+
+        //复制一份，用于判断连通性（因为判断算法会改变方格的bool值）
+        const copy_block = JSON.parse(JSON.stringify(block));
+        if (!this.check_connect(copy_block, this.rows - 2, 1, 1, this.cols - 2)) return false;
+        //生成blocks和walls
         for (let r = 0; r < this.rows; r++)
         {
             for (let c = 0; c < this.cols; c++)
             {
-                if(block[r][c]) //后端设定block值为0是通的，值为1的格子是block
+                if(block[r][c] === true)
                     this.blocks.push(new Wall(r, c, this));
             }
         }
+
+        return true;
     }
 
     //绑定键盘操作方向
@@ -68,8 +124,13 @@ export class GameMap extends BotGameObject {
     }
 
     start() {
-        this.create_walls();    
-        this.add_listening_events();
+        for (let i = 0; i < 2023; i++)
+        {
+            this.create_walls();
+            if (this.create_walls())
+                break;
+        }
+            this.add_listening_events();
     }
 
     update_size() {
@@ -158,5 +219,6 @@ export class GameMap extends BotGameObject {
 
     }
 
-
 }
+
+*/

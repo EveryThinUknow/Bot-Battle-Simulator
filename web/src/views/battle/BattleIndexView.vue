@@ -1,15 +1,65 @@
 <template>
-    <PlayGround>
+    <PlayGround v-if="$store.state.battle.status === 'playing'">
         Battle
     </PlayGround>
+    <MatchGround v-if="$store.state.battle.status === 'matching'">
+        Battle
+    </MatchGround>
 </template>
 
 <script>
 import PlayGround from '../../components/PlayGround.vue'
+import MatchGround from '../../components/MatchGround.vue'
+import { onMounted, onUnmounted } from 'vue';//测试，组件被加载/断开时，可执行具体函数
+import { useStore } from 'vuex';
 
 export default {
     components: {
-        PlayGround
+        PlayGround,
+        MatchGround,
+    },
+    setup() {
+        const store = useStore();
+        const socketUrl = `ws://127.0.0.1:3000/websocket/${store.state.user.token}`;//注意，此处是 ` 不是单引号，字符串中带$时用`
+
+        let socket = null;
+        onMounted(() => {
+            store.commit("updateOpponent", {
+                username: "测试对手",
+                photo: "https://pic1.zhimg.com/v2-abed1a8c04700ba7d72b45195223e0ff_l.jpg?source=1940ef5c",
+            })
+            socket = new WebSocket(socketUrl);
+
+            socket.onopen = () => {
+                console.log("connect successfully!");
+                store.commit("updateSocket", socket);
+            }
+            socket.onmessage = msg => {
+                const data = JSON.parse(msg.data);
+                if (data.event === "start-matching")
+                {
+                    store.commit("updateOpponent",{
+                        username: data.opponent_username,
+                        photo: data.opponent_photo,
+                    });
+                
+                    setTimeout(() => {
+                        store.commit("updateStatus", "playing");
+                    }, 2023);
+                    
+                    store.commit("updateGamemap", data.gamemap);
+                }
+            }
+            socket.onclose = () => {
+                console.log("disconnect successfully!");
+            }
+        });
+
+        onUnmounted(() => {
+            socket.close();
+            store.commit("updateStatus", "matching");
+        });
+
     }
 }
 
