@@ -1,21 +1,66 @@
 package com.bbs.backend.consumer.utils;
 
 //匹配状态下，地图保存在云端（保证双方地图一致）
-import java.util.Random;
+import com.alibaba.fastjson.JSONObject;
+import com.bbs.backend.consumer.WebSocketServer;
 
-public class Game {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class Game extends Thread{ //Game需要多线程(Thread)
     final private Integer rows;//行
     final private Integer cols;//列
     final private Integer inner_walls_count;//划定block的数量
     final private int[][] g;//地图坐标
     final private static int[] dx = {-1, 0, 1, 0}, dy = {0, 1, 0, -1}; //判定方向
 
+    //保存play的两个玩家 a和b
+    final private Player playerA, playerB;
+    public Player getPlayerA()
+    {
+        return playerA;
+    }
+    public Player getPlayerB()
+    {
+        return playerB;
+    }
+
+    //声明a和b的下一步操作
+    private Integer nextStepA = null;
+    private Integer nextStepB = null;
+    private ReentrantLock lock = new ReentrantLock();//线程锁
+    private String status = "playing"; //playing or finished
+    private String loser = ""; //all:平局， “A”， "B"
+    public void setnextStepA(Integer nextStepA)
+    {
+        lock.lock();
+        try{
+            this.nextStepA = nextStepA;
+        } finally {
+            lock.unlock();
+        }
+    }
+    public void setnextStepB(Integer nextStepB)
+    {
+        lock.lock();
+        try{
+            this.nextStepB = nextStepB;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+
     //初始化
-    public Game(Integer rows, Integer cols, Integer inner_walls_count) {
+    public Game(Integer rows, Integer cols, Integer inner_walls_count, Integer idA, Integer idB) {
         this.rows = rows;
         this.cols = cols;
         this.inner_walls_count = inner_walls_count;
         this.g = new int[rows][cols];
+        playerA = new Player(idA, rows-2, 1, new ArrayList<>()); //A出生在左下角
+        playerB = new Player(idB, 1, cols-2, new ArrayList<>()); //B出生在右上角
     }
 
 
@@ -59,6 +104,7 @@ public class Game {
         return check_connectivity(this.rows - 2, 1, 1, this.cols - 2);
     }
 
+
     public void createMap() {
         for (int i = 0; i < 1000; i ++ ) {
             if (draw())
@@ -81,10 +127,148 @@ public class Game {
                 }
             }
         }
-
         g[cx][cy] = 0;
         return false;
     }
 
+    /////////////////////以上是同步地图，确保地图一致性，地图保存在云端
+    /////////////////////以下是同步操作
+
+    //KEEP WAITING 两玩家的下一步操作，true表示接收到，false表示至少未收到一名玩家的nextstep
+    private boolean nextStep()
+    {
+        //Bug!！！ 因为前端的Bot的speed是200ms一个cell(格子)
+        //如果不sleep线程，前端会在这200ms里多次接收数据，前端就只保留200ms里的最后一步
+        //表现在实际演示中的结果就是画面和操作不完全匹配(当玩家操作过快，只会成功了一部分操作)
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            throw new RuntimeException();
+        }
+
+        for (int i = 0; i < 50; i++)
+        {
+            try {
+                Thread.sleep(100);
+                lock.lock();
+                try{
+                    //A和B的下一步操作都接收到（不为空），结束该判断
+                    if (nextStepA != null && nextStepB != null)
+                    {
+                        playerA.getSteps().add(nextStepA);
+                        playerB.getSteps().add(nextStepB);
+                        return true;
+                    }
+                }finally {
+                    lock.unlock();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    //根据玩家的实际操作step判断输赢
+
+
+    @Override
+    public void run() {
+        super.run();
+        for (int i = 0; i < 2023; i ++ ) {
+            if (nextStep()) {  // 是否获取了两条蛇的下一步操作
+                judge();
+                if (status.equals("playing")) { //需要把双方的nextstep都发送给双方
+                    sendMove();
+                } else {//如果双方都收到了nextstep的消息，进行判断
+                    sendResult();//nextstep的结果
+                    break;
+                }
+            } else {
+                status = "finished"; //
+                lock.lock();
+                try {
+                    if (nextStepA == null && nextStepB == null) {
+                        loser = "all";//平局
+                    } else if (nextStepA == null) {
+                        loser = "A";//A没在规定时间给出答案，A输
+                    } else {
+                        loser = "B";//同理B输
+                    }
+                } finally {
+                    lock.unlock();
+                }
+                sendResult();
+                break;
+            }
+        }
+    }
+
+    private void sendMove() {//传递nextstep信息的具体实现
+        lock.lock();
+        try{
+            JSONObject resp = new JSONObject();
+            resp.put("event", "move");
+            resp.put("a_direction", nextStepA);
+            resp.put("b_direction", nextStepB);
+
+            sendBothMessage(resp.toJSONString());//发给前端
+            nextStepA = nextStepB = null;
+        } finally {
+            lock.unlock();
+        }
+
+    }
+
+    private void sendBothMessage(String message) { //双方把nextsetp信息发送给双方的具体实现
+        WebSocketServer.users.get(playerA.getId()).sendMessage(message);
+        WebSocketServer.users.get(playerB.getId()).sendMessage(message);
+    }
+
+    //判断nextstep是否合规
+    //目的地不能是边界walls和障碍物blocks,另一个bot的cell
+    private boolean check_valid(List<Cell> cellsA, List<Cell> cellsB) {
+        int n = cellsA.size();
+        Cell cell = cellsA.get(n - 1);
+        if (g[cell.x][cell.y] == 1) return false;
+
+        for (int i = 0; i < n - 1; i ++ ) {
+            if (cellsA.get(i).x == cell.x && cellsA.get(i).y == cell.y)
+                return false;
+        }
+
+        for (int i = 0; i < n - 1; i ++ ) {
+            if (cellsB.get(i).x == cell.x && cellsB.get(i).y == cell.y)
+                return false;
+        }
+
+        return true;
+    }
+    private void judge() {
+        //获取A,B的bot的身体
+        List<Cell> cellsA = playerA.getCells();
+        List<Cell> cellsB = playerB.getCells();
+
+        //查看走完nextstep后，是否合规
+        boolean validA = check_valid(cellsA, cellsB);
+        boolean validB = check_valid(cellsB, cellsA);
+        if (!validA || !validB) {
+            status = "finished";//当至少一个bot不合规时，游戏结束，能判定结果
+
+            if (!validA && !validB) {
+                loser = "all";
+            } else if (!validA) {
+                loser = "A";
+            } else {
+                loser = "B";
+            }
+        }
+    }
+    private void sendResult() {
+        JSONObject resp = new JSONObject();
+        resp.put("event", "result");
+        resp.put("loser", loser);
+        sendBothMessage(resp.toJSONString());//发给前端
+    }
 }
 

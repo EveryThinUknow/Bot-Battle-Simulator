@@ -46,24 +46,21 @@ export class GameMap extends BotGameObject {
     //绑定键盘操作方向
     add_listening_events() {
         this.ctx.canvas.focus();
-        const [bot0, bot1] = this.bots;
         this.ctx.canvas.addEventListener("keydown", e => {
-            if (e.key === 'w')
-                bot0.set_direction(0);
-            else if (e.key === 'd')
-                bot0.set_direction(1);
-            else if (e.key === 's')
-                bot0.set_direction(2);
-            else if (e.key === 'a')
-                bot0.set_direction(3);
-            else if (e.key === 'ArrowUp')
-                bot1.set_direction(0);
-            else if (e.key === 'ArrowRight')
-                bot1.set_direction(1);
-            else if (e.key === 'ArrowDown')
-                bot1.set_direction(2);
-            else if (e.key === 'ArrowLeft')
-                bot1.set_direction(3);
+            let d = -1;
+            if (e.key === 'w') d = 0;
+            else if (e.key === 'd') d = 1;
+            else if (e.key === 's') d = 2;
+            else if (e.key === 'a') d = 3;
+
+            //从后端game的move中，获取用户的移动方向
+            if (d >= 0) {
+                this.store.state.battle.socket.send(JSON.stringify({
+                    event: "move",//读取后端给的move数据
+                    direction: d,
+                }));
+            }
+
         });
     }
 

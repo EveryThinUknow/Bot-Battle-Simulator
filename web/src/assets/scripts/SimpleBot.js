@@ -77,7 +77,7 @@ export class SimpleBot extends BotGameObject {
         //判断是否无法向前，如果valid没通过，status变为end，直接结束
         if (!this.gamemap.check_valid(this.next_cell))
         {
-            this.status = "end";
+            this.status = "end";//该bot输了
         }
 
     }

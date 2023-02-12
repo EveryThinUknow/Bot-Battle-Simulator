@@ -36,7 +36,7 @@ export default {
             }
             socket.onmessage = msg => {
                 const data = JSON.parse(msg.data);
-                if (data.event === "start-matching")
+                if (data.event === "start-matching")//获取开始匹配的信息
                 {
                     store.commit("updateOpponent",{
                         username: data.opponent_username,
@@ -47,8 +47,35 @@ export default {
                         store.commit("updateStatus", "playing");
                     }, 2023);
                     
-                    store.commit("updateGamemap", data.gamemap);
+                    //上传给store/battle.js中updateGame接口,存储接收到的数据
+                    store.commit("updateGame", data.game);
                 }
+                else if (data.event === "move") //获取双方移动信息
+                {
+                    //查询两个bots，bots在gameObject中
+                    console.log(data);
+                    const game = store.state.battle.gameObject;
+                    const [simplebot0, simplebot1] = game.bots;
+                    simplebot0.set_direction(data.a_direction);
+                    simplebot1.set_direction(data.b_direction);
+                } 
+                
+                else if (data.event === "result") //获取结果
+                {
+                    console.log(data);
+                    const game = store.state.battle.gameObject;
+                    const [simplebot0, simplebot1] = game.bots;
+
+                    if (data.loser === "all" || data.loser === "A") {
+                        simplebot0.status = "end";
+                    }
+                    if (data.loser === "all" || data.loser === "B") {
+                        simplebot1.status = "end";
+                    }
+                    //store.commit("updateLoser", data.loser);
+                }
+                
+
             }
             socket.onclose = () => {
                 console.log("disconnect successfully!");

@@ -3,7 +3,7 @@ import { BotGameObject } from "./BotGameObject";
 import { SimpleBot } from "./SimpleBot";
 import { Wall } from "./Walls";
 //地图
-export class GameMap extends BotGameObject {
+export class OfflineGameMap extends BotGameObject {
     constructor(ctx, parent) {
         super();
 
