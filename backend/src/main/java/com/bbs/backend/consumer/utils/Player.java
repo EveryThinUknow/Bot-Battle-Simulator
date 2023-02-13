@@ -43,12 +43,16 @@ public class Player {
         return body;
     }
 
+
+    //steps存储形式是list，若想存入数据库，需要转化成字符串
     public String getStepsString() {
-        StringBuilder res = new StringBuilder();
-        for (int d: steps) {
-            res.append(d);
+        StringBuilder br = new StringBuilder();
+        for (int step: steps) {
+            br.append(step);
         }
-        return res.toString();
+        return br.toString();
     }
+
+
 }
 

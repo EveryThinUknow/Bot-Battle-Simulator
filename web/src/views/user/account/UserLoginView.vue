@@ -60,7 +60,7 @@ export default{
 
         const login = () => {
             receive_message.value = "";
-            //存储全局变量数据
+            //存储到全局变量
             store.dispatch("login", {
                 username: username.value,
                 password: password.value,

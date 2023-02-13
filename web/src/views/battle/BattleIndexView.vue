@@ -5,11 +5,13 @@
     <MatchGround v-if="$store.state.battle.status === 'matching'">
         Battle
     </MatchGround>
+    <ResultGround v-if="$store.state.battle.loser != 'no result yet'"> Battle </ResultGround>
 </template>
 
 <script>
 import PlayGround from '../../components/PlayGround.vue'
 import MatchGround from '../../components/MatchGround.vue'
+import ResultGround from '../../components/ResultGround.vue'
 import { onMounted, onUnmounted } from 'vue';//测试，组件被加载/断开时，可执行具体函数
 import { useStore } from 'vuex';
 
@@ -17,6 +19,7 @@ export default {
     components: {
         PlayGround,
         MatchGround,
+        ResultGround,
     },
     setup() {
         const store = useStore();
@@ -25,7 +28,7 @@ export default {
         let socket = null;
         onMounted(() => {
             store.commit("updateOpponent", {
-                username: "测试对手",
+                username: "我的对手",
                 photo: "https://pic1.zhimg.com/v2-abed1a8c04700ba7d72b45195223e0ff_l.jpg?source=1940ef5c",
             })
             socket = new WebSocket(socketUrl);
@@ -72,7 +75,7 @@ export default {
                     if (data.loser === "all" || data.loser === "B") {
                         simplebot1.status = "end";
                     }
-                    //store.commit("updateLoser", data.loser);
+                    store.commit("updateLoser", data.loser);//结果返回，供resultground判断
                 }
                 
 

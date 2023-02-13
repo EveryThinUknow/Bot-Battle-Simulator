@@ -3,8 +3,10 @@ package com.bbs.backend.consumer.utils;
 //匹配状态下，地图保存在云端（保证双方地图一致）
 import com.alibaba.fastjson.JSONObject;
 import com.bbs.backend.consumer.WebSocketServer;
+import com.bbs.backend.pojo.Record;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
@@ -268,7 +270,46 @@ public class Game extends Thread{ //Game需要多线程(Thread)
         JSONObject resp = new JSONObject();
         resp.put("event", "result");
         resp.put("loser", loser);
+        saveToDatabase();//把对战数据存入该对局的record中
         sendBothMessage(resp.toJSONString());//发给前端
     }
+
+
+    ///////////////////Record存入数据库////////////////
+    private void saveToDatabase() {
+        Record record = new Record (
+                null,
+                playerA.getId(),
+                playerA.getSx(),
+                playerA.getSy(),
+                playerB.getId(),
+                playerB.getSx(),
+                playerB.getSy(),
+                playerA.getStepsString(),//getStepsString在Player.java中
+                playerB.getStepsString(),
+                getMapString(),
+                loser,
+                new Date()
+                );
+
+        WebSocketServer.recordMapper.insert(record);
+    }
+
+    //与getStepsString同操作
+    private String getMapString() {
+        StringBuilder br = new StringBuilder();
+        for (int i=0; i<rows; i++)
+        {
+            for (int j=0; j<cols; j++)
+            {
+                br.append(g[i][j]);
+            }
+        }
+        return br.toString();
+    }
+
+
+
+
 }
 

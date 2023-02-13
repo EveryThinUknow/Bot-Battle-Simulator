@@ -3,6 +3,7 @@ package com.bbs.backend.consumer;
 import com.alibaba.fastjson.JSONObject;
 import com.bbs.backend.consumer.utils.Game;
 import com.bbs.backend.consumer.utils.JwtAuthentication;
+import com.bbs.backend.mapper.RecordMapper;
 import com.bbs.backend.mapper.UserMapper;
 import com.bbs.backend.pojo.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,12 @@ public class WebSocketServer {
 
     private Game game = null;
 
-
+    //同上，此处是record战绩
+    public static RecordMapper recordMapper;
+    @Autowired
+    public void setRercordMapper(RecordMapper recordMapper){
+        WebSocketServer.recordMapper = recordMapper;
+    }
 
 /////////////////////////////
     // 建立连接

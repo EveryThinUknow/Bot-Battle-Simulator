@@ -6,14 +6,16 @@ export default {
         socket: null,
         opponent_username: "",
         opponent_photo: "",
-        gamemap: null,
+        gamemap: null,//地图数据
+        //a和b控制移动的方向坐标，id
         a_id: 0,
         a_sx: 0,
         a_sy: 0,
         b_id: 0,
         b_sx: 0,
         b_sy: 0,
-        gameObject: null,
+        gameObject: null, //bot的身体
+        loser: "no result yet", //all平局/A A输/B B输。 注意区分大小写,是之前定义好的
     },
     getters: {
     },
@@ -40,6 +42,9 @@ export default {
         },
         updateGameObject(state, gameObject) { //存储两个bot游戏对象
             state.gameObject = gameObject;
+        },
+        updateLoser(state, loser) {
+            state.loser = loser;
         }
     },
     actions: {

@@ -16,7 +16,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired //读取数据库
     private UserMapper userMapper;
 
-    @Override //Override重写,
+    @Override //重写该函数
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", username); //找到username为字符串username的数据库表格中的实体
