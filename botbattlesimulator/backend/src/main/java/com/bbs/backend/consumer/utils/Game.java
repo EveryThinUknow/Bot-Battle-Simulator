@@ -176,14 +176,15 @@ public class Game extends Thread{ //Game需要多线程(Thread)
             opponent = playerA;
         }
 
-        return getMapString()+ "#"
-                + me.getSx() + "#"
-                + me.getSy() + "#"
-                + me.getStepsString() +"#"
-                + opponent.getSx() + "#"
-                + opponent.getSy() + "#"
-                + opponent.getStepsString() + ")";
+        return getMapString() + "#" +
+                me.getSx() + "#" +
+                me.getSy() + "#(" +
+                me.getStepsString() + ")#" +
+                opponent.getSx() + "#" +
+                opponent.getSy() + "#(" +
+                opponent.getStepsString() + ")";
     }
+
 
     private void sendBotDetails(Player player) {
         if (player.getBotId().equals(-1)) return; //-1是手动操作，无bot

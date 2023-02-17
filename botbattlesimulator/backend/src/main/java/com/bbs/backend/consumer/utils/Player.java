@@ -20,9 +20,9 @@ public class Player {
 
 
 
-    private boolean check_tail_increasing(int step) {  // 检验当前回合，bot的长度是否增加
+    private boolean check_tail_increasing(int step) {  //检验当前回合，bot的长度是否增加
         if (step <= 3) return true;
-        if (step % 3 == 1 && step <= 14) return true;     //超过十回合，不再变得更长
+        if (step % 3 == 1 && step <= 28) return true;     //超过19回合，不再变得更长
         return false;
     }
 
