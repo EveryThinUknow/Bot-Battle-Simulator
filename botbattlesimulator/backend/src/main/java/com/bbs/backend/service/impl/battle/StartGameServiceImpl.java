@@ -1,0 +1,15 @@
+package com.bbs.backend.service.impl.battle;
+
+import com.bbs.backend.consumer.WebSocketServer;
+import com.bbs.backend.service.battle.StartGameService;
+import org.springframework.stereotype.Service;
+
+@Service
+public class StartGameServiceImpl implements StartGameService {
+    @Override
+    public String startGame(Integer aId, Integer bId) {
+        System.out.println("start game: " + aId + " " + bId);
+        WebSocketServer.startGame(aId, bId);
+        return "start game success";
+    }
+}
