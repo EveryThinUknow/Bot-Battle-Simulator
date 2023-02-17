@@ -3,8 +3,10 @@ package com.bbs.backend.consumer;
 import com.alibaba.fastjson.JSONObject;
 import com.bbs.backend.consumer.utils.Game;
 import com.bbs.backend.consumer.utils.JwtAuthentication;
+import com.bbs.backend.mapper.BotMapper;
 import com.bbs.backend.mapper.RecordMapper;
 import com.bbs.backend.mapper.UserMapper;
+import com.bbs.backend.pojo.Bot;
 import com.bbs.backend.pojo.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -39,7 +41,7 @@ public class WebSocketServer {
         WebSocketServer.userMapper = userMapper;
     }
 
-    private Game game = null;
+    public Game game = null;
 
     //同上，此处是record战绩
     public static RecordMapper recordMapper;
@@ -48,10 +50,19 @@ public class WebSocketServer {
         WebSocketServer.recordMapper = recordMapper;
     }
 
+    //同上，此处是bot，因前后端需要传输用户选择的bot的相关数据
+    public static BotMapper botMapper;
+    @Autowired
+    public void setBotMapper(BotMapper botMapper) {
+        WebSocketServer.botMapper = botMapper;
+    }
+
+
+
     //RestTemplate url for matching system
     private final static String addPlayerUrl = "http://127.0.0.1:3001/player/add/";
     private final static String removePlayerUrl = "http://127.0.0.1:3001/player/remove/";
-    private static RestTemplate restTemplate;
+    public static RestTemplate restTemplate;
     @Autowired
     public void setRestTemplate(RestTemplate restTemplate) {
         WebSocketServer.restTemplate = restTemplate;
@@ -96,7 +107,7 @@ public class WebSocketServer {
         String event = data.getString("event");
         if ("start-matching".equals(event))
         {
-            startMathcing();
+            startMathcing(data.getInteger("bot_id"));
         }
         else if ("stop-matching".equals(event))
         {
@@ -110,12 +121,22 @@ public class WebSocketServer {
     }
 
     //匹配系统
-    public static void startGame(Integer aId, Integer bId) {
+    public static void startGame(Integer aId, Integer aBotId, Integer bId, Integer bBotId) {
         User a = userMapper.selectById(aId);
+        Bot botA = botMapper.selectById(aBotId);
         User b = userMapper.selectById(bId);
+        Bot botB = botMapper.selectById(bBotId);
 
         //14行，15列，10blocks 注意，可自行修改，但是格子总数必须是奇数格子，防止双方能同时走进同一格
-        Game game = new Game(14, 15, 20, a.getId(), b.getId());
+        Game game = new Game(
+                14,
+                15,
+                20,
+                a.getId(),
+                botA,
+                b.getId(),
+                botB
+        );
         game.createMap();//创建地图
         game.start();//开启新线程
         if (users.get(a.getId()) != null)
@@ -162,11 +183,12 @@ public class WebSocketServer {
 
 
 
-    private void startMathcing() {
+    private void startMathcing(Integer botId) {
         System.out.println("start matching!");
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         data.add("user_id", this.user.getId().toString());
         data.add("rating", this.user.getRating().toString());
+        data.add("bot_id", botId.toString());
         restTemplate.postForObject(addPlayerUrl, data, String.class);
     }
 
@@ -180,9 +202,11 @@ public class WebSocketServer {
     private void move(int direction) {
         //判断玩家id
         if (game.getPlayerA().getId().equals(user.getId())) {//如果是A
-            game.setnextStepA(direction);//Input A的选择
+            if (game.getPlayerA().getBotId().equals(-1)) //只有botId＝-1时，才可手动操作
+                game.setnextStepA(direction);//Input A的选择
         } else if (game.getPlayerB().getId().equals(user.getId())) {//如果是B
-            game.setnextStepB(direction);//Input B的选择
+            if (game.getPlayerB().getBotId().equals(-1))
+                game.setnextStepB(direction);//Input B的选择
         }
     }
 

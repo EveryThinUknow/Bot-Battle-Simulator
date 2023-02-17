@@ -25,6 +25,8 @@ export default {
         const store = useStore();
         const socketUrl = `ws://127.0.0.1:3000/websocket/${store.state.user.token}`;//注意，此处是 ` 不是单引号，字符串中带$时用`
 
+        store.commit("updateLoser", "no result yet");
+        
         let socket = null;
         onMounted(() => {
             store.commit("updateOpponent", {
@@ -48,7 +50,7 @@ export default {
                 
                     setTimeout(() => {
                         store.commit("updateStatus", "playing");
-                    }, 2023);
+                    }, 200);//此处的时间必须与后端匹配成功后的sleep时间一致
                     
                     //上传给store/battle.js中updateGame接口,存储接收到的数据
                     store.commit("updateGame", data.game);

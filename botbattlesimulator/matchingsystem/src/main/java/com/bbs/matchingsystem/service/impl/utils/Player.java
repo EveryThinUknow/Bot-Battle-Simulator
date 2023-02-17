@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Player {
-    private Integer userId;
-    private Integer rating;
-    private Integer matchingTime;
+    private Integer userId; //你的ID
+    private Integer rating; //你的分数
+    private Integer botId; //对战选择的bot
+    private Integer matchingTime; //匹配耗时
 }

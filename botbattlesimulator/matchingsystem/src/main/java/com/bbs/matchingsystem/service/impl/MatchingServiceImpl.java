@@ -9,15 +9,13 @@ public class MatchingServiceImpl implements MatchingService {
     public final static MatchingPool matchingpool = new MatchingPool();//匹配线程
 
     @Override
-    public String addPlayer(Integer userId, Integer rating) {
-        System.out.println("add player: " + userId + " " + rating);
-        matchingpool.addPlayer(userId, rating);
+    public String addPlayer(Integer userId, Integer rating, Integer botId) {
+        matchingpool.addPlayer(userId, rating, botId);
         return "add player success";
     }
 
     @Override
     public String removePlayer(Integer userId) {
-        System.out.println("remove player: " + userId);
         matchingpool.removePlayer(userId);
         return "remove player success";
     }

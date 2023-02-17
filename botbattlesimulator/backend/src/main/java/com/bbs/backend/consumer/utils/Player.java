@@ -12,6 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 public class Player {
     private Integer id; //玩家的id
+    private Integer botId; //选择的bot的id -1表示无bot,手动操作
+    private String botDetails; //bot的逻辑
     private Integer sx; //出生点坐标，行
     private Integer sy; //出生点坐标，列
     private List<Integer> steps; //存储移动路径（Integer存方向）

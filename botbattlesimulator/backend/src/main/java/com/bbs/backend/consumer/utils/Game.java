@@ -3,7 +3,11 @@ package com.bbs.backend.consumer.utils;
 //匹配状态下，地图保存在云端（保证双方地图一致）
 import com.alibaba.fastjson.JSONObject;
 import com.bbs.backend.consumer.WebSocketServer;
+import com.bbs.backend.pojo.Bot;
 import com.bbs.backend.pojo.Record;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,6 +39,7 @@ public class Game extends Thread{ //Game需要多线程(Thread)
     private ReentrantLock lock = new ReentrantLock();//线程锁
     private String status = "playing"; //playing or finished
     private String loser = ""; //all:平局， “A”， "B"
+    private final static String addBotUrl = "http://127.0.0.1:3002/bot/add/";
     public void setnextStepA(Integer nextStepA)
     {
         lock.lock();
@@ -56,13 +61,33 @@ public class Game extends Thread{ //Game需要多线程(Thread)
 
 
     //初始化
-    public Game(Integer rows, Integer cols, Integer inner_walls_count, Integer idA, Integer idB) {
+    public Game(
+            Integer rows,
+            Integer cols,
+            Integer inner_walls_count,
+            Integer idA,
+            Bot botA,
+            Integer idB,
+            Bot botB
+            ) {
         this.rows = rows;
         this.cols = cols;
         this.inner_walls_count = inner_walls_count;
         this.g = new int[rows][cols];
-        playerA = new Player(idA, rows-2, 1, new ArrayList<>()); //A出生在左下角
-        playerB = new Player(idB, 1, cols-2, new ArrayList<>()); //B出生在右上角
+        Integer botIdA = -1, botIdB = -1;
+        String botDetailsA = "", botDetailsB = "";
+        if (botA != null)
+        {
+            botIdA = botA.getId();
+            botDetailsA = botA.getDetails();
+        }
+        if (botB != null)
+        {
+            botIdB = botB.getId();
+            botDetailsB = botB.getDetails();
+        }
+        playerA = new Player(idA, botIdA, botDetailsA,rows-2, 1, new ArrayList<>()); //A出生在左下角
+        playerB = new Player(idB, botIdB, botDetailsB, 1, cols-2, new ArrayList<>()); //B出生在右上角
     }
 
 
@@ -136,6 +161,41 @@ public class Game extends Thread{ //Game需要多线程(Thread)
     /////////////////////以上是同步地图，确保地图一致性，地图保存在云端
     /////////////////////以下是同步操作
 
+    //Bot获取对战局面
+    //地图#bot头部sx#头部sy#操作#对手sx#对手sy#对手操作
+    private String getInput(Player player) {
+        Player me, opponent;
+        if (playerA.getId().equals(player.getId()))
+        {
+            me = playerA;
+            opponent = playerB;
+        }
+        else
+        {
+            me = playerB;
+            opponent = playerA;
+        }
+
+        return getMapString()+ "#"
+                + me.getSx() + "#"
+                + me.getSy() + "#"
+                + me.getStepsString() +"#"
+                + opponent.getSx() + "#"
+                + opponent.getSy() + "#"
+                + opponent.getStepsString() + ")";
+    }
+
+    private void sendBotDetails(Player player) {
+        if (player.getBotId().equals(-1)) return; //-1是手动操作，无bot
+
+        MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
+        data.add("user_id", player.getId().toString());
+        data.add("bot_details", player.getBotDetails());
+        data.add("input", getInput(player));
+
+        WebSocketServer.restTemplate.postForObject(addBotUrl, data, String.class);
+
+    }
     //KEEP WAITING 两玩家的下一步操作，true表示接收到，false表示至少未收到一名玩家的nextstep
     private boolean nextStep()
     {
@@ -148,10 +208,13 @@ public class Game extends Thread{ //Game需要多线程(Thread)
             throw new RuntimeException();
         }
 
+        sendBotDetails(playerA);
+        sendBotDetails(playerB);
+
         for (int i = 0; i < 50; i++)
         {
             try {
-                Thread.sleep(100);
+                Thread.sleep(200);
                 lock.lock();
                 try{
                     //A和B的下一步操作都接收到（不为空），结束该判断
@@ -313,9 +376,6 @@ public class Game extends Thread{ //Game需要多线程(Thread)
         }
         return br.toString();
     }
-
-
-
 
 }
 
