@@ -1,10 +1,6 @@
 <template>
     <div class="container common-content" >
-        <div class="card">
-            <div class="card-body">
-                <slot></slot>
-            </div>
-        </div>
+        <slot></slot>
     </div>
 </template>
 
@@ -15,6 +11,6 @@
 <style scoped>
 div.common-content {
     margin-top: 20px;
+    background: rgba(211,211,211,0.36);
 }
-
 </style>

@@ -35,7 +35,7 @@ public class WebSocketServer {
     private Session session = null;
 
     //将数据库中的user映射进来，保存成全局变量的形式，因为每个连接都要在user中去寻找对应的ID，需要遍历数据库
-    private static UserMapper userMapper;
+    public static UserMapper userMapper;
     @Autowired
     public void setUserMapper(UserMapper userMapper) {
         WebSocketServer.userMapper = userMapper;
@@ -75,7 +75,7 @@ public class WebSocketServer {
     @OnOpen
     public void onOpen(Session session, @PathParam("token") String token) throws IOException {
         this.session = session;
-        System.out.println("connect successfully!");
+        //System.out.println("connect successfully!");
         Integer userId = JwtAuthentication.getUserId(token);
         this.user = userMapper.selectById(userId);//找到该用户
 
@@ -93,7 +93,7 @@ public class WebSocketServer {
     @OnClose
     public void onClose() {
         // 关闭连接
-        System.out.println("disconnect successfully!");
+        //System.out.println("disconnect successfully!");
         if (this.user != null) {
             users.remove(this.user.getId());
         }
@@ -102,7 +102,7 @@ public class WebSocketServer {
     //后端接收前端的信息
     @OnMessage
     public void onMessage(String message, Session session) {
-        System.out.println("receive message successfully!");
+        //System.out.println("receive message successfully!");
         JSONObject data = JSONObject.parseObject(message);
         String event = data.getString("event");
         if ("start-matching".equals(event))
@@ -184,7 +184,7 @@ public class WebSocketServer {
 
 
     private void startMathcing(Integer botId) {
-        System.out.println("start matching!");
+        //System.out.println("start matching!");
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         data.add("user_id", this.user.getId().toString());
         data.add("rating", this.user.getRating().toString());
@@ -193,7 +193,7 @@ public class WebSocketServer {
     }
 
     private void stopMathcing() {
-        System.out.println("stop matching!");
+        //System.out.println("stop matching!");
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         data.add("user_id", this.user.getId().toString());
         restTemplate.postForObject(removePlayerUrl, data, String.class);

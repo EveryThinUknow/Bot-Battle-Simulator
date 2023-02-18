@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bbs.backend.consumer.WebSocketServer;
 import com.bbs.backend.pojo.Bot;
 import com.bbs.backend.pojo.Record;
+import com.bbs.backend.pojo.User;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -344,9 +345,25 @@ public class Game extends Thread{ //Game需要多线程(Thread)
         sendBothMessage(resp.toJSONString());//发给前端
     }
 
-
     ///////////////////Record存入数据库////////////////
     private void saveToDatabase() {
+        //对战出结果后，获胜方加分，失败方扣分
+        Integer playerARating = WebSocketServer.userMapper.selectById(playerA.getId()).getRating();
+        Integer playerBRating = WebSocketServer.userMapper.selectById(playerB.getId()).getRating();
+
+        if ("A".equals(loser))
+        {
+            playerARating -= 30;
+            playerBRating += 50;
+        }
+        else if ("B".equals(loser))
+        {
+            playerARating += 50;
+            playerBRating -= 30;
+        }
+        RatingChange(playerA, playerARating);
+        RatingChange(playerB, playerBRating);
+
         Record record = new Record (
                 null,
                 playerA.getId(),
@@ -363,6 +380,12 @@ public class Game extends Thread{ //Game需要多线程(Thread)
                 );
 
         WebSocketServer.recordMapper.insert(record);
+    }
+
+    private void RatingChange(Player player, Integer rating) {
+        User user = WebSocketServer.userMapper.selectById(player.getId());
+        user.setRating(rating); //修改user类中rating的值
+        WebSocketServer.userMapper.updateById(user); //将修改后的user上传更新到数据库
     }
 
     //与getStepsString同操作

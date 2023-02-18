@@ -26,6 +26,7 @@ export default {
         const socketUrl = `ws://127.0.0.1:3000/websocket/${store.state.user.token}`;//注意，此处是 ` 不是单引号，字符串中带$时用`
 
         store.commit("updateLoser", "no result yet");
+        store.commit("updateIsRecord", false);//意思是该battle页面是对战页面还是录像，如果是true，则为游戏录像（其实是把存储的对战信息中a和b的steps再执行一遍）
         
         let socket = null;
         onMounted(() => {

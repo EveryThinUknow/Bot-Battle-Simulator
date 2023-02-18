@@ -45,23 +45,53 @@ export class GameMap extends BotGameObject {
 
     //绑定键盘操作方向
     add_listening_events() {
-        this.ctx.canvas.focus();
-        this.ctx.canvas.addEventListener("keydown", e => {
-            let d = -1;
-            if (e.key === 'w') d = 0;
-            else if (e.key === 'd') d = 1;
-            else if (e.key === 's') d = 2;
-            else if (e.key === 'a') d = 3;
-
-            //从后端game的move中，获取用户的移动方向
-            if (d >= 0) {
-                this.store.state.battle.socket.send(JSON.stringify({
-                    event: "move",//读取后端给的move数据
-                    direction: d,
-                }));
-            }
-
-        });
+        //如果打开的是录像，record.is_record ==  true
+        if (this.store.state.record.is_record) 
+        {
+            //操作步骤存储在record.js中，record.js的数据来自于后端数据库，此处数据格式应与record.js一致
+            let k = 0;
+            const [simplebot0, simplebot1] = this.bots;
+            const a_steps = this.store.state.record.a_steps;
+            const b_steps = this.store.state.record.b_steps;
+            const loser = this.store.state.record.record_loser;
+            
+            const interval_id = setInterval(() => { //指定刷新率 300ms
+                if (k >= a_steps.length - 1) { //走完，取结果
+                    if (loser === "all" || loser === "A") {
+                        simplebot0.status = "end";
+                    }
+                    if (loser === "all" || loser === "B") {
+                        simplebot1.status = "end";
+                    }
+                    clearInterval(interval_id);
+                } else { //未走完，继续看下一步nextstep，播放出来
+                    simplebot0.set_direction(parseInt(a_steps[k]));
+                    simplebot1.set_direction(parseInt(b_steps[k]));
+                }
+                k ++ ;
+            }, 300);
+        }
+        //如果是游戏对战，则执行常规操作
+        else
+        {
+            this.ctx.canvas.focus();
+            this.ctx.canvas.addEventListener("keydown", e => {
+                let d = -1;
+                if (e.key === 'w') d = 0;
+                else if (e.key === 'd') d = 1;
+                else if (e.key === 's') d = 2;
+                else if (e.key === 'a') d = 3;
+    
+                //从后端game的move中，获取用户的移动方向
+                if (d >= 0) {
+                    this.store.state.battle.socket.send(JSON.stringify({
+                        event: "move",//读取后端给的move数据
+                        direction: d,
+                    }));
+                }
+    
+            });
+        }
     }
 
     start() {
